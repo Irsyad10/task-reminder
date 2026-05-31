@@ -1,0 +1,29 @@
+name: task_reminder
+description: Aplikasi Pengingat Tugas - Task Manager with Notifications
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.1.2
+  flutter_local_notifications: ^17.2.2
+  shared_preferences: ^2.3.3
+  intl: ^0.19.0
+  uuid: ^4.5.1
+  timezone: ^0.9.4
+  flutter_animate: ^4.5.0
+  google_fonts: ^6.2.1
+  gap: ^3.0.1
+  supabase_flutter: ^2.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
