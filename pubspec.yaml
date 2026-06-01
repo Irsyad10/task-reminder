@@ -19,6 +19,7 @@ dependencies:
   google_fonts: ^6.2.1
   gap: ^3.0.1
   supabase_flutter: ^2.0.0
+  flutter_dotenv: ^5.1.0
 
 dev_dependencies:
   flutter_test:
@@ -27,3 +28,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+   - .env
