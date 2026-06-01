@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:intl/date_symbol_data_local.dart'; // 🔥 tambahan
 
 import 'services/notification_service.dart';
 import 'services/task_provider.dart';
@@ -12,6 +13,9 @@ import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 🔥 INIT LOCALE (WAJIB untuk intl)
+  await initializeDateFormatting('id_ID', null);
 
   // Load ENV
   await dotenv.load();
@@ -52,7 +56,11 @@ class TaskReminderApp extends StatelessWidget {
       title: 'Task Reminder',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const AuthWrapper(), // ⬅️ pakai ini, bukan langsung HomeScreen
+
+      // 🔥 tambahan biar pakai bahasa Indonesia
+      locale: const Locale('id', 'ID'),
+
+      home: const AuthWrapper(),
     );
   }
 }
