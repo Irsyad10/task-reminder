@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:intl/date_symbol_data_local.dart'; // 🔥 tambahan
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'services/notification_service.dart';
 import 'services/task_provider.dart';
@@ -42,18 +42,18 @@ Future<void> main() async {
   runApp(
     ChangeNotifierProvider(
       create: (_) => TaskProvider()..loadTasks(),
-      child: const TaskReminderApp(),
+      child: const KitaPlanApp(),
     ),
   );
 }
 
-class TaskReminderApp extends StatelessWidget {
-  const TaskReminderApp({super.key});
+class KitaPlanApp extends StatelessWidget {
+  const KitaPlanApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Task Reminder',
+      title: 'KitaPlan',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
 

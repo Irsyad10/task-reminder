@@ -198,8 +198,19 @@ class TaskDetailScreen extends StatelessWidget {
     );
 
     if (confirmed == true && context.mounted) {
-      await context.read<TaskProvider>().deleteTask(task.id);
-      if (context.mounted) Navigator.pop(context);
+      try {
+        await context.read<TaskProvider>().deleteTask(task.id);
+        if (context.mounted) Navigator.pop(context);
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal menghapus tugas: $e'),
+              backgroundColor: AppTheme.secondary,
+            ),
+          );
+        }
+      }
     }
   }
 }

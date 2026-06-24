@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/task.dart';
 import '../services/task_storage_service.dart';
 import '../services/notification_service.dart';
@@ -11,6 +12,24 @@ class TaskProvider extends ChangeNotifier {
 
   List<Task> _tasks = [];
   bool _isLoading = false;
+
+  TaskProvider() {
+    // Jalankan loadTasks jika user sudah login di awal aplikasi
+    if (Supabase.instance.client.auth.currentUser != null) {
+      loadTasks();
+    }
+
+    // Dengarkan perubahan status auth (login/logout)
+    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      final event = data.event;
+      if (event == AuthChangeEvent.signedIn || event == AuthChangeEvent.tokenRefreshed) {
+        loadTasks();
+      } else if (event == AuthChangeEvent.signedOut) {
+        _tasks = [];
+        notifyListeners();
+      }
+    });
+  }
 
   List<Task> get tasks => List.unmodifiable(_tasks);
   bool get isLoading => _isLoading;
@@ -52,8 +71,9 @@ class TaskProvider extends ChangeNotifier {
       notificationId: notifId,
     );
 
+    await _storageService.saveTask(task);
+
     _tasks.add(task);
-    await _storageService.saveTasks(_tasks);
 
     if (scheduleNotification && deadline != null) {
       final reminderTime = deadline.subtract(const Duration(hours: 1));
@@ -72,6 +92,8 @@ class TaskProvider extends ChangeNotifier {
     final index = _tasks.indexWhere((t) => t.id == updatedTask.id);
     if (index == -1) return;
 
+    await _storageService.saveTask(updatedTask);
+
     // Cancel old notification if deadline changed
     final oldTask = _tasks[index];
     if (oldTask.notificationId != null &&
@@ -80,7 +102,6 @@ class TaskProvider extends ChangeNotifier {
     }
 
     _tasks[index] = updatedTask;
-    await _storageService.saveTasks(_tasks);
 
     // Schedule new notification if deadline set
     if (updatedTask.deadline != null && updatedTask.notificationId != null) {
@@ -105,12 +126,14 @@ class TaskProvider extends ChangeNotifier {
     final newIsChecked = !task.isChecked;
     final newStatus = newIsChecked ? TaskStatus.done : TaskStatus.todo;
 
-    _tasks[index] = task.copyWith(
+    final updated = task.copyWith(
       isChecked: newIsChecked,
       status: newStatus,
     );
 
-    await _storageService.saveTasks(_tasks);
+    await _storageService.saveTask(updated);
+    _tasks[index] = updated;
+
     notifyListeners();
   }
 
@@ -118,24 +141,27 @@ class TaskProvider extends ChangeNotifier {
     final index = _tasks.indexWhere((t) => t.id == taskId);
     if (index == -1) return;
 
-    _tasks[index] = _tasks[index].copyWith(
+    final updated = _tasks[index].copyWith(
       status: status,
       isChecked: status == TaskStatus.done,
     );
 
-    await _storageService.saveTasks(_tasks);
+    await _storageService.saveTask(updated);
+    _tasks[index] = updated;
+
     notifyListeners();
   }
 
   Future<void> deleteTask(String taskId) async {
     final task = _tasks.firstWhere((t) => t.id == taskId);
 
+    await _storageService.deleteTask(taskId);
+
     if (task.notificationId != null) {
       await _notificationService.cancelNotification(task.notificationId!);
     }
 
     _tasks.removeWhere((t) => t.id == taskId);
-    await _storageService.saveTasks(_tasks);
     notifyListeners();
   }
 

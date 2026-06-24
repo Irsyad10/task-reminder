@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/task.dart';
 import '../services/task_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/task_card.dart';
 import '../widgets/add_task_sheet.dart';
 import '../screens/task_detail_screen.dart';
+import 'auth/login_screen.dart';
+import '../../services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -85,6 +88,21 @@ class _HomeScreenState extends State<HomeScreen>
       floating: false,
       backgroundColor: AppTheme.background,
       elevation: 0,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.logout_rounded, color: AppTheme.secondary),
+          tooltip: 'Keluar Akun',
+          onPressed: () async {
+            await AuthService().signOut();
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
+            }
+          },
+        ),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         collapseMode: CollapseMode.pin,
         background: _HeaderSection(),
@@ -126,7 +144,7 @@ class _HeaderSection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Task Reminder',
+                    'KitaPlan',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
@@ -317,7 +335,18 @@ class _TaskList extends StatelessWidget {
     );
 
     if (confirmed == true && context.mounted) {
-      context.read<TaskProvider>().deleteTask(task.id);
+      try {
+        await context.read<TaskProvider>().deleteTask(task.id);
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal menghapus tugas: $e'),
+              backgroundColor: AppTheme.secondary,
+            ),
+          );
+        }
+      }
     }
   }
 }

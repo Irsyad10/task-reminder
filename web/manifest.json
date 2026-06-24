@@ -1,6 +1,6 @@
 {
-    "name": "task_reminder",
-    "short_name": "task_reminder",
+    "name": "KitaPlan",
+    "short_name": "KitaPlan",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

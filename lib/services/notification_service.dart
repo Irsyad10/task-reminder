@@ -74,7 +74,7 @@ class NotificationService {
 
     final androidDetails = AndroidNotificationDetails(
       'task_reminder_channel',
-      'Task Reminders',
+      'KitaPlan Reminders',
       channelDescription: 'Notifications for task deadlines',
       importance: Importance.max,
       priority: Priority.high,
@@ -114,7 +114,7 @@ class NotificationService {
   }) async {
     final androidDetails = AndroidNotificationDetails(
       'task_reminder_channel',
-      'Task Reminders',
+      'KitaPlan Reminders',
       channelDescription: 'Notifications for task deadlines',
       importance: Importance.max,
       priority: Priority.high,

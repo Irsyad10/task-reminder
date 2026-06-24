@@ -93,18 +93,36 @@ class Task {
     };
   }
 
+  Map<String, dynamic> toSupabaseJson(String userId) {
+    return {
+      'id': id,
+      'user_id': userId,
+      'title': title,
+      'description': description,
+      'status': status.value,
+      'is_done': isChecked,
+      'deadline': deadline?.toIso8601String(),
+      'created_at': createdAt.toIso8601String(),
+      'notification_id': notificationId,
+    };
+  }
+
   factory Task.fromJson(Map<String, dynamic> json) {
     return Task(
       id: json['id'] as String,
       title: json['title'] as String,
       description: json['description'] as String? ?? '',
       status: TaskStatusExtension.fromString(json['status'] as String? ?? 'todo'),
-      isChecked: json['isChecked'] as bool? ?? false,
+      isChecked: json['isChecked'] as bool? ?? json['is_done'] as bool? ?? false,
       deadline: json['deadline'] != null
           ? DateTime.parse(json['deadline'] as String)
           : null,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      notificationId: json['notificationId'] as int?,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : json['created_at'] != null
+              ? DateTime.parse(json['created_at'] as String)
+              : DateTime.now(),
+      notificationId: json['notificationId'] as int? ?? json['notification_id'] as int?,
     );
   }
 
