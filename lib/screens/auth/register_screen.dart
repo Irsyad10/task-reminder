@@ -15,6 +15,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final supabase = Supabase.instance.client;
 
+  final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
@@ -22,28 +23,56 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool isGoogleLoading = false;
 
   Future<void> register() async {
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Nama Lengkap wajib diisi")),
+      );
+      return;
+    }
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Email dan Password wajib diisi")),
+      );
+      return;
+    }
+
     setState(() => isLoading = true);
 
     try {
       await supabase.auth.signUp(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+        email: email,
+        password: password,
+        data: {
+          'full_name': name,
+          'avatar_emoji': '😊',
+          'avatar_color': '#6C63FF',
+        },
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Registrasi berhasil! Silakan login"),
-        ),
-      );
-
-      Navigator.pop(context); // kembali ke login
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Registrasi berhasil! Silakan login"),
+          ),
+        );
+        Navigator.pop(context); // kembali ke login
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Register gagal: $e")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Register gagal: $e")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
-
-    setState(() => isLoading = false);
   }
 
   Future<void> registerWithGoogle() async {
@@ -73,6 +102,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
+    nameController.dispose();
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -88,13 +118,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             children: [
               TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: "Nama Lengkap",
+                  prefixIcon: Icon(Icons.person_outline_rounded),
+                ),
+                textCapitalization: TextCapitalization.words,
+              ),
+              const SizedBox(height: 10),
+              TextField(
                 controller: emailController,
-                decoration: const InputDecoration(labelText: "Email"),
+                decoration: const InputDecoration(
+                  labelText: "Email",
+                  prefixIcon: Icon(Icons.email_outlined),
+                ),
+                keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: passwordController,
-                decoration: const InputDecoration(labelText: "Password"),
+                decoration: const InputDecoration(
+                  labelText: "Password",
+                  prefixIcon: Icon(Icons.lock_outline_rounded),
+                ),
                 obscureText: true,
               ),
               const SizedBox(height: 20),

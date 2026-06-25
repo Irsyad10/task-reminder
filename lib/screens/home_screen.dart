@@ -10,6 +10,7 @@ import '../widgets/add_task_sheet.dart';
 import '../screens/task_detail_screen.dart';
 import 'auth/login_screen.dart';
 import '../../services/auth_service.dart';
+import 'settings/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -82,6 +83,18 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   SliverAppBar _buildAppBar(bool innerBoxIsScrolled) {
+    final user = Supabase.instance.client.auth.currentUser;
+    final metadata = user?.userMetadata ?? {};
+    final googleAvatarUrl = metadata['avatar_url'] ?? metadata['picture'] ?? '';
+    final avatarEmoji = metadata['avatar_emoji'] ?? '😊';
+    final avatarColorHex = metadata['avatar_color'] ?? '#6C63FF';
+
+    Color avatarColor = AppTheme.primary;
+    try {
+      final hex = avatarColorHex.replaceAll('#', '');
+      avatarColor = Color(int.parse('FF$hex', radix: 16));
+    } catch (_) {}
+
     return SliverAppBar(
       expandedHeight: 200,
       pinned: true,
@@ -89,18 +102,40 @@ class _HomeScreenState extends State<HomeScreen>
       backgroundColor: AppTheme.background,
       elevation: 0,
       actions: [
-        IconButton(
-          icon: const Icon(Icons.logout_rounded, color: AppTheme.secondary),
-          tooltip: 'Keluar Akun',
-          onPressed: () async {
-            await AuthService().signOut();
-            if (mounted) {
-              Navigator.pushReplacement(
+        Padding(
+          padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+          child: GestureDetector(
+            onTap: () async {
+              await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
               );
-            }
-          },
+              setState(() {});
+            },
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: avatarColor.withOpacity(0.15),
+                border: Border.all(color: avatarColor, width: 1.5),
+                image: googleAvatarUrl.isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(googleAvatarUrl),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: googleAvatarUrl.isEmpty
+                  ? Center(
+                      child: Text(
+                        avatarEmoji,
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                    )
+                  : null,
+            ),
+          ),
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
@@ -123,6 +158,11 @@ class _HeaderSection extends StatelessWidget {
     final done = provider.completedTasks;
     final progress = total > 0 ? done / total : 0.0;
 
+    final user = Supabase.instance.client.auth.currentUser;
+    final metadata = user?.userMetadata ?? {};
+    final fullName = metadata['full_name'] ?? metadata['name'] ?? '';
+    final displayName = fullName.isNotEmpty ? 'Halo, $fullName 👋' : 'KitaPlan';
+
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 60, 20, 0),
       child: Column(
@@ -140,25 +180,29 @@ class _HeaderSection extends StatelessWidget {
                     color: AppTheme.primary, size: 22),
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'KitaPlan',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimary,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayName,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  Text(
-                    '$done dari $total tugas selesai',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      color: AppTheme.textSecondary,
+                    Text(
+                      '$done dari $total tugas selesai',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),

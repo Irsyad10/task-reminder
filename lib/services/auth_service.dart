@@ -60,4 +60,32 @@ class AuthService {
     }
     await _supabase.auth.signOut();
   }
+
+  /// Menghapus semua data pengguna dan akun.
+  /// 1. Hapus semua tugas milik user dari tabel 'tasks'
+  /// 2. Sign out dari Google
+  /// 3. Sign out dari Supabase
+  Future<void> deleteAccount() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) throw Exception('User tidak ditemukan');
+
+    try {
+      // 1. Hapus semua data tugas milik user
+      await _supabase.from('tasks').delete().eq('user_id', user.id);
+
+      // 2. Disconnect dari Google (jika login via Google)
+      try {
+        final GoogleSignIn googleSignIn = GoogleSignIn();
+        await googleSignIn.disconnect();
+      } catch (e) {
+        debugPrint('Error disconnecting Google: $e');
+      }
+
+      // 3. Sign out dari Supabase
+      await _supabase.auth.signOut();
+    } catch (e) {
+      debugPrint('Error deleting account: $e');
+      rethrow;
+    }
+  }
 }
